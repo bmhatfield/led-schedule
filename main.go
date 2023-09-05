@@ -17,15 +17,10 @@ func main() {
 	}
 	arg.MustParse(&args)
 
-	log.Println("fetching ip geo... (specify lat, lon to skip)")
+	log.Println("fetching ip geo...")
 	loc, err := geo()
 	if err != nil {
 		log.Fatalf("failed to get geo: %v", err)
-	}
-
-	end, err := ParseClock(args.EndTime, loc.Timezone)
-	if err != nil {
-		log.Fatalf("failed to parse end time: %v", err)
 	}
 
 	client := Client{
@@ -36,6 +31,11 @@ func main() {
 
 	ss := time.Time{}
 	for {
+		end, err := ParseClock(args.EndTime, loc.Timezone)
+		if err != nil {
+			log.Fatalf("failed to parse end time: %v", err)
+		}
+
 		log.Println("fetching sunset...")
 		cur, err := sunset(loc.Lat, loc.Lon)
 		switch {
@@ -55,29 +55,25 @@ func main() {
 
 		now := time.Now()
 		up := ss.Add(-args.BeforeSunset)
-		down := Next(end)
+		nextUp := Next(up)
+		nextEnd := Next(end)
 
 		switch {
 		case now.Before(up):
-			if client.IsOn {
-				client.FadeDown()
-			}
+			err = client.OnAt(up)
 
-			// wait for fade-up
-			wait := time.Until(up)
-			log.Printf("sleeping %s until %s before sunset (%s)", wait, args.BeforeSunset, up)
-			<-time.After(wait)
-			client.FadeUp()
-		case now.Before(down):
-			if !client.IsOn {
-				client.FadeUp()
-			}
+		case now.Before(end):
+			err = client.OffAt(end)
 
-			// wait for fade down
-			wait := time.Until(down)
-			log.Printf("sleeping %s until fade-down (%s)", wait, down)
-			<-time.After(wait)
-			client.FadeDown()
+		case nextUp.Before(nextEnd):
+			err = client.OnAt(nextUp)
+
+		case nextEnd.Before(nextUp):
+			err = client.OffAt(nextEnd)
+		}
+
+		if err != nil {
+			log.Printf("failed to perform action: %v", err)
 		}
 	}
 }

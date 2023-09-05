@@ -27,6 +27,32 @@ func (c Client) setColor(color string, conn net.Conn) error {
 	return err
 }
 
+func (c *Client) OnAt(t time.Time) error {
+	if c.IsOn {
+		if err := c.FadeDown(); err != nil {
+			return err
+		}
+	}
+
+	wait := time.Until(t)
+	log.Printf("sleeping %s until fade-up at %s", wait, t)
+	<-time.After(wait)
+	return c.FadeUp()
+}
+
+func (c *Client) OffAt(t time.Time) error {
+	if !c.IsOn {
+		if err := c.FadeUp(); err != nil {
+			return err
+		}
+	}
+
+	wait := time.Until(t)
+	log.Printf("sleeping %s until fade-down %s", wait, t)
+	<-time.After(wait)
+	return c.FadeDown()
+}
+
 func (c *Client) FadeUp() error {
 	log.Println("connecting...")
 	conn, err := c.conn()
@@ -50,7 +76,7 @@ func (c *Client) FadeUp() error {
 	return nil
 }
 
-func (c Client) FadeDown() error {
+func (c *Client) FadeDown() error {
 	log.Println("connecting...")
 	conn, err := c.conn()
 	if err != nil {
