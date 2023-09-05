@@ -10,23 +10,22 @@ import (
 func main() {
 	var args struct {
 		BeforeSunset time.Duration `arg:"--before" help:"duration before sunset to turn on" default:"10m"`
+		EndTime      string        `arg:"--end" help:"time to turn off" default:"00:15:00 AM"`
 		Power        int           `arg:"--power" help:"power level" default:"140"`
-		Lat          float64       `arg:"--lat" help:"latitude"`
-		Lon          float64       `arg:"--lon" help:"longitude"`
 		FadeInterval time.Duration `arg:"--fade-interval" help:"fade interval" default:"25ms"`
 		Address      string        `arg:"--address" help:"address of the light controller" default:"10.3.1.140:9999"`
 	}
 	arg.MustParse(&args)
 
-	lat, lon := args.Lat, args.Lon
-	if lat == 0 && lon == 0 {
-		log.Println("fetching ip geo... (specify lat, lon to skip)")
-		loc, err := geo()
-		if err != nil {
-			log.Fatalf("failed to get geo: %v", err)
-		}
+	log.Println("fetching ip geo... (specify lat, lon to skip)")
+	loc, err := geo()
+	if err != nil {
+		log.Fatalf("failed to get geo: %v", err)
+	}
 
-		lat, lon = loc.Lat, loc.Lon
+	end, err := ParseClock(args.EndTime, loc.Timezone)
+	if err != nil {
+		log.Fatalf("failed to parse end time: %v", err)
 	}
 
 	client := Client{
@@ -38,7 +37,7 @@ func main() {
 	ss := time.Time{}
 	for {
 		log.Println("fetching sunset...")
-		cur, err := sunset(lat, lon)
+		cur, err := sunset(loc.Lat, loc.Lon)
 		switch {
 		case err != nil && !ss.IsZero():
 			// no sunset time available
@@ -56,7 +55,7 @@ func main() {
 
 		now := time.Now()
 		up := ss.Add(-args.BeforeSunset)
-		down := Next(Clock(0, 15, 0))
+		down := Next(end)
 
 		switch {
 		case now.Before(up):

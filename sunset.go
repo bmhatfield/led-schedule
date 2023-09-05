@@ -8,8 +8,6 @@ import (
 	"github.com/bmhatfield/led-schedule/jsonapi"
 )
 
-const TimeOfDay = "3:04:05 PM"
-
 type Response struct {
 	Result Sunset `json:"results"`
 	Status string `json:"status"`
@@ -29,28 +27,12 @@ type Sunset struct {
 	UtcOffset  int    `json:"utc_offset"`
 }
 
-func (s Sunset) parse(t string) (time.Time, error) {
-	now := time.Now()
-
-	loc, err := time.LoadLocation(s.Timezone)
-	if err != nil {
-		return now, err
-	}
-
-	x, err := time.ParseInLocation(TimeOfDay, t, loc)
-	if err != nil {
-		return now, err
-	}
-
-	return x.AddDate(now.Year(), int(now.Month())-1, now.Day()-1), nil
-}
-
 func (s Sunset) SunsetTime() (time.Time, error) {
-	return s.parse(s.Sunset)
+	return ParseClock(s.Sunset, s.Timezone)
 }
 
 func (s Sunset) SunriseTime() (time.Time, error) {
-	return s.parse(s.Sunrise)
+	return ParseClock(s.Sunrise, s.Timezone)
 }
 
 func sunset(lat, lon float64) (*Sunset, error) {
