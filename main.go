@@ -39,7 +39,7 @@ func main() {
 		log.Println("fetching sunset...")
 		cur, err := sunset(loc.Lat, loc.Lon)
 		switch {
-		case err != nil && !ss.IsZero():
+		case err != nil && ss.IsZero():
 			// no sunset time available
 			log.Fatalf("failed to get initial sunset: %v", err)
 		case err != nil && !ss.IsZero():
