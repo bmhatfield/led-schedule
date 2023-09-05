@@ -5,13 +5,12 @@ This is a simple daylight scheduler daemon for LEDs driven by a [rpi-ws2812-serv
 ## command
 
 ```
-Usage: led-schedule [--before BEFORE] [--power POWER] [--lat LAT] [--lon LON] [--fade-interval FADE-INTERVAL] [--address ADDRESS]
+Usage: led-schedule [--before BEFORE] [--end END] [--power POWER] [--fade-interval FADE-INTERVAL] [--address ADDRESS]
 
 Options:
   --before BEFORE        duration before sunset to turn on [default: 10m]
+  --end END              time to turn off [default: 00:15:00 AM]
   --power POWER          power level [default: 140]
-  --lat LAT              latitude
-  --lon LON              longitude
   --fade-interval FADE-INTERVAL
                          fade interval [default: 25ms]
   --address ADDRESS      address of the light controller [default: 10.3.1.140:9999]
