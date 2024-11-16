@@ -13,7 +13,7 @@ func main() {
 		EndTime      string        `arg:"--end" help:"time to turn off" default:"00:15:00 AM"`
 		Power        int           `arg:"--power" help:"power level" default:"140"`
 		FadeInterval time.Duration `arg:"--fade-interval" help:"fade interval" default:"25ms"`
-		Address      string        `arg:"--address" help:"address of the light controller" default:"10.3.1.140:9999"`
+		Address      string        `arg:"--address" help:"address of the light controller" default:"10.3.1.211:9999"`
 	}
 	arg.MustParse(&args)
 
